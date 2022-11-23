@@ -1,6 +1,6 @@
 import os
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import SpotifyOAuth, CacheFileHandler
 from subprocess import run
 from pathlib import Path
 import datetime
@@ -29,10 +29,18 @@ def creds(config_file=None) -> dict:
     client_secret = creds["client_secret"]
 
     print("Authenticating with spotipy")
+
+    # Create weekly_dl cache in .local/share if it does not exist
+    config_dir = Path(f"{home}/.local/share/weekly_dl")
+    if not config_dir.exists():
+        config_dir.mkdir(parents=True, exist_ok=True)
+
     sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id,
                                                    client_secret=client_secret,
                                                    redirect_uri="http://localhost:3000",
-                                                   scope="playlist-read-private"))
+                                                   scope="playlist-read-private",
+                                                   cache_handler=CacheFileHandler(cache_path=f"{home}/.local/share/weekly_dl/auth_cache")
+                                                   ))
     # My user id
     user = USERID
     results = sp.user_playlists(user)

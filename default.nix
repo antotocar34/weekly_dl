@@ -12,13 +12,13 @@ in
 
           buildInputs = with pkgs; [
             poetry
-            bash
           ];
 
           buildPhase = ''
             echo """
             #! ${l.getExe pkgs.bash}
-            env -C $out ${l.getExe pkgs.poetry} run env -C $out python $out/weekly_dl/main.py
+            cd $out
+            ${l.getExe pkgs.poetry} run env -C $out python $out/weekly_dl/main.py
             """ >> weekly_dl_exec
             '';
           installPhase = ''
@@ -26,7 +26,5 @@ in
             cp -r .venv pyproject.toml poetry.lock weekly_dl $out
             cp weekly_dl_exec $out/bin/weekly_dl
             chmod +x $out/bin/weekly_dl
-            '';
-          postInstall = ''
             '';
         }
