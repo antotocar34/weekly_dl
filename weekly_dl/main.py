@@ -56,9 +56,24 @@ def get_weekly_url(results: dict) -> str:
     return url
         
 def get_directory_name() -> str:
+    """
+    Return directory name with the last tuesday
+    """
     today = datetime.date.today()
-    monday = today - datetime.timedelta(days=today.weekday())
-    date = monday.strftime("%d_%m_%Y")
+    # Better to download it on the tuesday since spotify weeklies don't come out
+    # at a regular on the monday
+    day_map = {
+            1: 0, # tuesday
+            2: 1, # wednesday
+            3: 2, # thursday
+            4: 3, # friday
+            5: 4, # saturday
+            6: 5, # sunday
+            0: 6 # monday
+            }
+
+    last_tuesday = today - datetime.timedelta( days=day_map[today.weekday()] )
+    date = last_tuesday.strftime("%d_%m_%Y")
     new_dir = f"spotify_weekly-{date}"
     return BASE_DIR + new_dir
 
@@ -69,10 +84,21 @@ def main(config_file=None):
 
     download_dir = Path(get_directory_name())
 
+    if (download_dir / ".finished").exists():
+        print("Already downloaded")
+        return False
+
+
     download_dir.mkdir(parents=True, exist_ok=True)
 
     result = run(["spotdl", weekly_url], 
                  cwd=str(download_dir)
                  )
+    # Mark directory as finised
+    (download_dir / ".finished").touch()
+    return True
+
+
+
 if __name__ == "__main__":
     main()
